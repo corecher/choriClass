@@ -1,0 +1,125 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="460" height="350" viewBox="0 0 460 350" fill="none">
+  <title>보석과 물약을 담은 라벤더 보물상자</title>
+  <defs>
+    <linearGradient id="top" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#fcfaff"/><stop offset="1" stop-color="#e4d7ff"/>
+    </linearGradient>
+    <linearGradient id="front" x2=".3" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#dbc8ff"/><stop offset="1" stop-color="#a98bde"/>
+    </linearGradient>
+    <linearGradient id="side" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#ae8ee1"/><stop offset="1" stop-color="#8d72bd"/>
+    </linearGradient>
+    <linearGradient id="lining" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#f2dcff"/><stop offset="1" stop-color="#caabec"/>
+    </linearGradient>
+    <linearGradient id="metal" x2=".7" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#fff6ba"/><stop offset=".52" stop-color="#ffdc85"/><stop offset="1" stop-color="#edb563"/>
+    </linearGradient>
+    <linearGradient id="gem" x2=".7" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#d6adff"/><stop offset=".5" stop-color="#ad79ed"/><stop offset="1" stop-color="#7354bd"/>
+    </linearGradient>
+    <linearGradient id="glass" x2="1" y2=".8" gradientUnits="objectBoundingBox">
+      <stop stop-color="#fffaff"/><stop offset=".5" stop-color="#fde9ee"/><stop offset="1" stop-color="#e2bcd6"/>
+    </linearGradient>
+    <linearGradient id="potion" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop stop-color="#ffcdaf"/><stop offset=".6" stop-color="#ffae99"/><stop offset="1" stop-color="#e98f94"/>
+    </linearGradient>
+    <path id="spark" d="M0-9Q1.3-1.3 8 0Q1.3 1.3 0 9Q-1.3 1.3-8 0Q-1.3-1.3 0-9Z"/>
+  </defs>
+
+  <!-- Two shallow display tiles give the chest a small collectible pedestal. -->
+  <ellipse cx="233" cy="307" rx="151" ry="20" fill="#9274b7" opacity=".13"/>
+  <g stroke="#8e78ac" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m67 249 144-68a9 9 0 0 1 8-.2l178 67q5 1.8 5 6v11q0 4-4 6l-142 68q-5 2-10 0L67 271q-5-2-5-6v-10q0-4 5-6Z" fill="#d8c8f0"/>
+    <path d="m248 329 151-73v11l-146 69q-4 2-5-1Z" fill="#bdabd8" stroke="none"/>
+    <path d="m68 247 143-68q4-2 9 0l178 68q6 3 0 6l-144 69q-4 2-9 0L68 255q-7-4 0-8Z" fill="url(#top)"/>
+    <path d="m94 247 121-57 151 57-117 57Z" stroke="#c8b4e0" fill="none"/>
+    <path d="m80 261 38 15m245-9 20-10" stroke="#fff9ff" opacity=".8"/>
+  </g>
+  <path d="m109 245 131-56 111 62-98 50Z" fill="#80619c" opacity=".19"/>
+
+  <g stroke="#564064" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- The opened lid, with a velvet inner panel and a pale lilac rolled edge. -->
+    <path d="m193 145-7-82c-.8-15 8-28 20-30 5-1 9 0 13 2l131 50c11 4 16 12 16 24l-3 78-10 13Z" fill="url(#side)"/>
+    <path d="m194 146-7-79c-1-15 4-24 15-26 5-.9 10 .1 16 2l124 48c11 4 16 12 15 24l-3 82Z" fill="url(#front)"/>
+    <path d="m199 137-6-69c-1-12 3-20 11-21 4-1 8 0 12 2l124 48c8 3 12 9 11 18l-3 73Z" fill="#f5eaff" stroke="#ad8dcd" stroke-width="1.7"/>
+    <path d="m207 135-6-65c-.8-11 4-17 13-13l119 46c8 3 11 8 11 16l-3 57Z" fill="url(#lining)" stroke="#936dac" stroke-width="1.8"/>
+    <path d="m215 127-5-57q-.5-8 5-5l116 45q5 2 5 8l-2 47Z" fill="none" stroke="#fff5ff" stroke-width="1.6" stroke-dasharray="3 4"/>
+    <path d="m196 48 8-6q6-3 14 1l121 47" stroke="#fff7ff" stroke-width="2" opacity=".85"/>
+    <path d="m285 92 5 4-3 4-5-4Z" fill="#f6eaff" stroke="none"/>
+    <path d="m292 108 3 2-2 3-3-2Z" fill="#f6eaff" stroke="none"/>
+
+    <!-- Dark inner lining helps the silhouettes of the little treasures read. -->
+    <path d="m100 186 92-45q5-2 10 0l151 56q5 2 0 6l-94 45-158-58Z" fill="#dcc4f3"/>
+    <path d="m113 186 84-39 141 52-83 40Z" fill="#9e82b7"/>
+    <path d="m114 187 82-38 1 24-54 25Z" fill="#85699b" stroke="none"/>
+    <path d="m196 149 142 50-21 12-120-38Z" fill="#baa0ce" stroke="none"/>
+    <g fill="#705682" opacity=".42" stroke="none">
+      <ellipse cx="187" cy="195" rx="26" ry="8" transform="rotate(17 187 195)"/>
+      <ellipse cx="253" cy="205" rx="29" ry="8" transform="rotate(8 253 205)"/>
+    </g>
+
+    <!-- A hand-cut amethyst, with separate crown and pavilion facets. -->
+    <path d="m147 151 18-26 22-25 25 25 6 33-15 42-27 11-22-23Z" fill="url(#gem)"/>
+    <path d="m147 151 19-25 21-26-5 44-23 16Z" fill="#e3bdff" stroke="#79529d" stroke-width="1.2"/>
+    <path d="m187 100 25 25-15 22-15-3Z" fill="#bc92ff" stroke="#79529d" stroke-width="1.2"/>
+    <path d="m212 125 6 33-21-11Z" fill="#9869da" stroke="#79529d" stroke-width="1.2"/>
+    <path d="m159 160 23-16 15 3-11 55-10 9Z" fill="#b082f4" stroke="#79529d" stroke-width="1.2"/>
+    <path d="m197 147 21 11-15 42-17 2Z" fill="#8962d1" stroke="#79529d" stroke-width="1.2"/>
+    <path d="m159 160-12-9 7 37 22 23Z" fill="#cfa2fa" stroke="#79529d" stroke-width="1.2"/>
+    <path d="m154 149 27-34m-21 52 5 15" stroke="#fff5ff" stroke-width="2.4"/>
+
+    <!-- The flask tilts towards the crystal. Its curved meniscus stays visible. -->
+    <g transform="rotate(12 248 175)">
+      <path d="M242 144h18v10c0 7 4 9 10 13 8 5 12 13 11 22-2 14-13 24-29 24s-29-10-30-24c-.7-9 3-17 11-23 7-5 9-7 9-12Z" fill="url(#glass)"/>
+      <path d="M227 181q8-5 21-1t27-1c4 10-1 24-12 28-15 7-33 1-37-13-1-4-1-10 1-13Z" fill="url(#potion)" stroke="#cd858f" stroke-width="1.4"/>
+      <path d="M229 181q9-5 20-1t24 0" stroke="#ffe9d9" stroke-width="2.1"/>
+      <path d="M239 140q0-3 5-3h15q5 0 5 3v6q0 3-4 3h-17q-4 0-4-3Z" fill="#f7e6f2" stroke-width="1.8"/>
+      <path d="m244 138-2-9q-.5-3 3-4h12q4 0 4 3l-2 10Z" fill="#d59b75" stroke-width="1.8"/>
+      <path d="m244 128 14-1" stroke="#f4ca9a" stroke-width="1.8"/>
+      <path d="M231 175q2-6 6-8m-6 28q1 5 5 8" stroke="white" stroke-width="3.5"/>
+      <circle cx="266" cy="192" r="2.3" fill="#ffe7d6" stroke="none"/>
+      <circle cx="260" cy="198" r="1.4" fill="#ffe7d6" stroke="none"/>
+    </g>
+
+    <!-- Front and side panels, straps, clasp and corner guards. -->
+    <path d="m102 186 152 57 96-45-5 56q-.3 5-6 8l-82 39q-5 2-10 0l-136-51q-6-2-6-7Z" fill="url(#front)"/>
+    <path d="m254 243 96-45-5 56q-.3 5-6 8l-82 39q-3 1-5 1Z" fill="url(#side)"/>
+    <path d="m111 198 134 50-2 43-129-48Z" stroke="#b097c9" stroke-width="1.6"/>
+    <path d="m260 247 81-38-3 44-79 37Z" stroke="#826b9b" stroke-width="1.6"/>
+    <path d="m116 210 126 47m-125-30 124 46m27-25 65-31m-67 47 64-30" stroke="#876d9f" stroke-width="1.25" opacity=".55"/>
+    <path d="m125 198 13 5 2 56-12-5Z" fill="#efddfb" stroke-width="1.7"/>
+    <path d="m216 232 13 5-1 55-13-5Z" fill="#ead4f6" stroke-width="1.7"/>
+    <path d="m312 215 10-5-3 55-10 5Z" fill="#ceb6e1" stroke-width="1.7"/>
+    <path d="m100 184 156 58 96-47 1 10-96 47-156-59Z" fill="#e8d6f6"/>
+    <path d="m256 242 96-47 1 10-96 47Z" fill="#c5a8d9" stroke-width="1.9"/>
+    <path d="m104 187 149 55" stroke="#fff6ff" stroke-width="2"/>
+    <path d="m107 235 11 4 1 10-8-3q-4-1-4-5Zm136 52 11 4 8-4-.5 10-6 4q-3 1-6 0l-7-3Zm94-33 9-4-1 7q-1 3-4 5l-5 2Z" fill="url(#metal)" stroke-width="1.6"/>
+    <path d="m169 210 21 8q3 1 3 5l-1 18q0 4-4 5l-6 2-15-6q-3-1-3-5v-20q0-4 5-7Z" fill="#d6a76e" stroke-width="2"/>
+    <path d="m169 214 17 6q3 1 3 4l-.5 17q0 5-4 4l-16-6q-3-1-3-4v-17q0-5 3-4Z" fill="url(#metal)" stroke-width="1.6"/>
+    <path d="m169 217 15 5" stroke="#fff9cf" stroke-width="1.9"/>
+    <path d="M180 228c-3-2-5 0-5 2 0 1.4 1 2.4 2 3l-1 3 4 1-.8-4c2-1 2-4 1-5Z" fill="#755773" stroke="none"/>
+    <g fill="#e5c38b" stroke="#896b83" stroke-width="1">
+      <ellipse cx="132" cy="214" rx="1.6" ry="2"/><ellipse cx="134" cy="246" rx="1.6" ry="2"/>
+      <ellipse cx="222" cy="247" rx="1.6" ry="2"/><ellipse cx="221" cy="278" rx="1.6" ry="2"/>
+    </g>
+
+    <!-- A tiny star keychain hangs over the right rim. -->
+    <path d="M304 215q-5 5-2 13" stroke="#705273" stroke-width="2.7"/>
+    <path d="M303 215q-3 5-1 10" stroke="#ffe7a0" stroke-width="1.4"/>
+    <path d="m303 223 5 6 7-.4-3.4 7 1.2 6-7-1-6 4-1.5-7-6-3 6-5 2-6Z" fill="url(#metal)" stroke-width="1.8"/>
+    <path d="m302 228 2 6 6-2" stroke="#fff5c7" stroke-width="1.8"/>
+  </g>
+
+  <g fill="#fff8d5" stroke="#9b7998" stroke-width="1.6" stroke-linejoin="round">
+    <use href="#spark" transform="translate(123 99) scale(1.1)"/>
+    <use href="#spark" transform="translate(358 62) scale(.7)"/>
+    <use href="#spark" transform="translate(388 157) scale(1.07)"/>
+  </g>
+  <g fill="#baa1d1">
+    <use href="#spark" transform="translate(101 117) scale(.46)"/>
+    <use href="#spark" transform="translate(376 76) scale(.35)"/>
+    <circle cx="135" cy="76" r="1.8"/><circle cx="397" cy="141" r="1.8"/>
+  </g>
+</svg>
