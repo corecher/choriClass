@@ -4,18 +4,33 @@ import { readFile } from 'node:fs/promises';
 export const pool = mysql.createPool({
   host: process.env.DB_HOST || '127.0.0.1',
   port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || 'chori',
+  user: process.env.DB_USER || 'chori_20510',
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME || 'chori_class',
+  database: process.env.DB_NAME || 'chori_class_20510',
   charset: 'utf8mb4',
   connectionLimit: 10,
   dateStrings: true,
+  connectTimeout: 10000,
 });
 
 export async function initialize() {
   const sql = await readFile(new URL('../database/schema.sql', import.meta.url), 'utf8');
   for (const statement of sql.split(';').filter((value) => value.trim())) {
     await pool.query(statement);
+  }
+  // 기존 데이터는 보존하고 새 기능에 필요한 열만 추가한다. 아래 SQL은 고정된 값만 사용한다.
+  for (const [table, column, definition] of [
+    ['users', 'recovery_code_hash', 'CHAR(64)'],
+    ['listings', 'updated_at', 'DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP'],
+  ]) {
+    const [columns] = await pool.query('SHOW COLUMNS FROM ?? LIKE ?', [table, column]);
+    if (columns.length) continue;
+    try {
+      await pool.query('ALTER TABLE ?? ADD COLUMN ?? ' + definition, [table, column]);
+    } catch (error) {
+      // 두 서버가 동시에 처음 실행되어 다른 쪽이 먼저 열을 추가한 경우만 허용한다.
+      if (error.code !== 'ER_DUP_FIELDNAME') throw error;
+    }
   }
   await pool.query('DELETE FROM sessions WHERE expires_at <= NOW()');
 }

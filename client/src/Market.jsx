@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
 import { Store, Tag } from 'lucide-react';
-import { Alert, Art, Empty, Head, Load, api, go, money, useAction, useData } from './common.jsx';
+import {
+  Alert,
+  Art,
+  Empty,
+  Head,
+  Load,
+  Paged,
+  api,
+  categories,
+  go,
+  money,
+  useAction,
+  useData,
+} from './common.jsx';
 
 function Stock({ item, refresh }) {
   const action = useAction();
@@ -98,25 +111,44 @@ function Stock({ item, refresh }) {
 }
 export function Inventory({ revision, refresh }) {
   const state = useData('inventory', revision);
+  const [query, setQuery] = useState('');
   return (
     <main className="content">
       <Head label="MY INVENTORY" title="내 인벤토리">
         생산하거나 구매한 아이템의 수량을 확인하고 판매할 수 있어요.
       </Head>
+      <div className="toolbar">
+        <label className="search">
+          <input
+            aria-label="보유 아이템 검색"
+            placeholder="보유 아이템 이름 검색"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </label>
+        <button onClick={refresh}>새로고침</button>
+      </div>
       <Load state={state}>
-        {(rows) =>
-          rows.length ? (
-            <div className="stock-grid">
-              {rows.map((i) => (
-                <Stock key={i.item_id} item={i} refresh={refresh} />
-              ))}
-            </div>
+        {(data) => {
+          const rows = data.filter((row) =>
+            row.name.toLowerCase().includes(query.trim().toLowerCase()),
+          );
+          return rows.length ? (
+            <Paged rows={rows}>
+              {(visible) => (
+                <div className="stock-grid">
+                  {visible.map((i) => (
+                    <Stock key={i.item_id} item={i} refresh={refresh} />
+                  ))}
+                </div>
+              )}
+            </Paged>
           ) : (
-            <Empty title="아직 보유한 아이템이 없어요">
+            <Empty title={query ? '검색한 아이템이 없어요' : '아직 보유한 아이템이 없어요'}>
               <a href="#/studio">제작소로 이동 →</a>
             </Empty>
-          )
-        }
+          );
+        }}
       </Load>
     </main>
   );
@@ -125,6 +157,9 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
   const own = page === 'sales',
     buying = page === 'buy';
   const [sort, setSort] = useState('new');
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState('');
+  const [status, setStatus] = useState('');
   const state = useData(own ? 'my-listings' : 'market?sort=' + sort, revision);
   const action = useAction();
   const [quantity, setQuantity] = useState('1');
@@ -149,6 +184,37 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
               내 판매 관리
             </a>
           )}
+          <label className="search">
+            <input
+              aria-label="시장 아이템 검색"
+              placeholder="아이템 또는 판매자 검색"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+          <select
+            aria-label="시장 분류"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            <option value="">모든 분류</option>
+            {categories.map((c) => (
+              <option key={c}>{c}</option>
+            ))}
+          </select>
+          {own && (
+            <select
+              aria-label="판매 상태"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="">모든 상태</option>
+              <option value="ACTIVE">판매 중</option>
+              <option value="SOLD_OUT">품절</option>
+              <option value="CANCELED">취소</option>
+            </select>
+          )}
+          <button onClick={refresh}>새로고침</button>
           {!own && (
             <select aria-label="매물 정렬" value={sort} onChange={(e) => setSort(e.target.value)}>
               <option value="new">최신순</option>
@@ -176,6 +242,7 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
                   e.preventDefault();
                   action.run(async () => {
                     if (!user) {
+                      sessionStorage.setItem('chori:returnTo', 'buy/' + listingId);
                       go('login');
                       return;
                     }
@@ -235,6 +302,11 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
                     </>
                   )}
                 </dl>
+                {user && listing.seller_id === user.user_id && (
+                  <p className="alert">
+                    내 매물은 구매할 수 없습니다. 내 판매 관리에서 취소할 수 있어요.
+                  </p>
+                )}
                 {user && user.gold_balance < total && (
                   <p className="alert">구매할 골드가 부족합니다.</p>
                 )}
@@ -242,6 +314,10 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
                   className="primary"
                   disabled={
                     action.busy ||
+                    !Number.isSafeInteger(total) ||
+                    total < 1 ||
+                    !Number.isSafeInteger(Number(quantity)) ||
+                    Number(quantity) > listing.remaining_quantity ||
                     (user && (listing.seller_id === user.user_id || user.gold_balance < total))
                   }
                 >
@@ -251,9 +327,23 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
               </form>
             );
           }
-          if (!rows.length)
+          const filtered = rows.filter(
+            (row) =>
+              (!category || row.category === category) &&
+              (!status || row.status === status) &&
+              (row.name + ' ' + row.seller).toLowerCase().includes(query.trim().toLowerCase()),
+          );
+          if (!filtered.length)
             return (
-              <Empty title={own ? '등록한 매물이 없어요' : '판매 중인 매물이 없어요'}>
+              <Empty
+                title={
+                  query || category || status
+                    ? '조건에 맞는 매물이 없어요'
+                    : own
+                      ? '등록한 매물이 없어요'
+                      : '판매 중인 매물이 없어요'
+                }
+              >
                 {user ? (
                   <a href="#/inventory">내 인벤토리로 이동 →</a>
                 ) : (
@@ -262,48 +352,69 @@ export function Market({ user, page, listingId, revision, refresh, onUser }) {
               </Empty>
             );
           return (
-            <div className="tiles">
-              {rows.map((l) => (
-                <article className="tile" key={l.listing_id}>
-                  <a href={'#/item/' + l.item_id} className="tile-art">
-                    <Art item={l} />
-                  </a>
-                  <div className="tile-copy">
-                    <span className="pill">
-                      {{ ACTIVE: '판매 중', SOLD_OUT: '품절', CANCELED: '취소' }[l.status]}
-                    </span>
-                    {l.item_status === 'RETIRED' && <span className="pill">제작 종료</span>}
-                    <h3>{l.name}</h3>
-                    <p>
-                      최초 제작자 {l.creator} · 판매자 {l.seller}
-                    </p>
-                    <p>
-                      개당 <b>{money(l.unit_price)}</b> · 남은 {l.remaining_quantity}개
-                    </p>
-                    {l.status === 'ACTIVE' &&
-                      (l.seller_id === user?.user_id ? (
-                        <button
-                          disabled={action.busy}
-                          onClick={() =>
-                            action.run(async () => {
-                              if (!window.confirm('미판매 수량의 예약을 취소할까요?')) return;
-                              await api('market/' + l.listing_id, 'DELETE');
-                              refresh();
-                            })
+            <Paged rows={filtered}>
+              {(visible) => (
+                <div className="tiles">
+                  {visible.map((l) => (
+                    <article className="tile" key={l.listing_id}>
+                      <a
+                        href={'#/item/' + l.item_id}
+                        className="tile-art"
+                        aria-label={l.name + ' 상세보기'}
+                      >
+                        <Art item={l} />
+                      </a>
+                      <div className="tile-copy">
+                        <span className="pill">
+                          {
+                            {
+                              ACTIVE: '판매 중',
+                              SOLD_OUT: '품절',
+                              CANCELED: '취소',
+                            }[l.status]
                           }
-                        >
-                          매물 취소
-                        </button>
-                      ) : (
-                        <a className="btn" href={user ? '#/buy/' + l.listing_id : '#/login'}>
-                          <Store size={15} />
-                          {user ? '구매하기' : '로그인하고 구매'}
-                        </a>
-                      ))}
-                  </div>
-                </article>
-              ))}
-            </div>
+                        </span>
+                        {l.item_status === 'RETIRED' && <span className="pill">제작 종료</span>}
+                        <h3>{l.name}</h3>
+                        <p>
+                          최초 제작자 {l.creator} · 판매자 {l.seller}
+                        </p>
+                        <p>
+                          개당 <b>{money(l.unit_price)}</b> · 남은 {l.remaining_quantity}개
+                        </p>
+                        {l.status === 'ACTIVE' &&
+                          (l.seller_id === user?.user_id ? (
+                            <button
+                              disabled={action.busy}
+                              onClick={() =>
+                                action.run(async () => {
+                                  if (!window.confirm('미판매 수량의 예약을 취소할까요?')) return;
+                                  await api('market/' + l.listing_id, 'DELETE');
+                                  refresh();
+                                })
+                              }
+                            >
+                              매물 취소
+                            </button>
+                          ) : (
+                            <a
+                              className="btn"
+                              href={user ? '#/buy/' + l.listing_id : '#/login'}
+                              onClick={() => {
+                                if (!user)
+                                  sessionStorage.setItem('chori:returnTo', 'buy/' + l.listing_id);
+                              }}
+                            >
+                              <Store size={15} />
+                              {user ? '구매하기' : '로그인하고 구매'}
+                            </a>
+                          ))}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
+            </Paged>
           );
         }}
       </Load>

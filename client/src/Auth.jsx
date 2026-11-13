@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useId, useState } from 'react';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -13,7 +13,7 @@ import {
   Sparkles,
   UserRound,
 } from 'lucide-react';
-import { Alert, api, go, passwordHint, useAction } from './common.jsx';
+import { Alert, RecoveryCode, api, go, passwordHint, useAction } from './common.jsx';
 
 function ArchivePlate() {
   return (
@@ -26,7 +26,7 @@ function ArchivePlate() {
       </div>
       <div className="archive-copy">
         <h2>
-          취향을 모으는
+          choriClass
           <br />
           <em>나만의 아이템 창고</em>
         </h2>
@@ -66,12 +66,14 @@ export function PasswordField({
   required = true,
 }) {
   const [show, setShow] = useState(false);
+  const inputId = useId();
   return (
-    <label className="field">
-      <span>{label}</span>
+    <div className="field">
+      <label htmlFor={inputId}>{label}</label>
       <span className="input-wrap">
         <LockKeyhole size={17} />
         <input
+          id={inputId}
           type={show ? 'text' : 'password'}
           name={name}
           required={required}
@@ -88,7 +90,7 @@ export function PasswordField({
           {show ? <EyeOff size={16} /> : <Eye size={16} />}
         </button>
       </span>
-    </label>
+    </div>
   );
 }
 export default function Auth({ mode, onUser }) {
@@ -111,11 +113,18 @@ export default function Auth({ mode, onUser }) {
         password: input.password,
       });
       if (signup) {
-        setCreated(result.user);
+        setCreated(result);
         onUser(result.user);
       } else {
         onUser(result.user);
-        go('studio');
+        const destination = sessionStorage.getItem('chori:returnTo');
+        sessionStorage.removeItem('chori:returnTo');
+        go(
+          destination &&
+            /^(buy\/\d+|studio|inventory|sales|trades|profile|new|edit\/\d+)$/.test(destination)
+            ? destination
+            : 'studio',
+        );
       }
     });
   }
@@ -132,8 +141,9 @@ export default function Auth({ mode, onUser }) {
               <small className="eyebrow">REGISTRATION COMPLETE</small>
               <h1>가입이 완료되었어요</h1>
               <p>
-                {created.nickname} 님의 창고에 첫 <strong>1,000 G</strong>가 지급되었습니다.
+                {created.user.nickname} 님의 창고에 첫 <strong>1,000 G</strong>가 지급되었습니다.
               </p>
+              <RecoveryCode code={created.recoveryCode} />
               <button className="primary" onClick={() => go('studio')}>
                 내 제작소로 이동 <ArrowRight size={17} />
               </button>
@@ -209,6 +219,23 @@ export default function Auth({ mode, onUser }) {
                   <ArrowRight size={17} />
                 </button>
               </form>
+              {!signup && (
+                <a className="recovery-link" href="#/recover">
+                  비밀번호를 잊으셨나요?
+                </a>
+              )}
+              {signup && (
+                <p className="form-note">
+                  <a href="#/terms" target="_blank" rel="noreferrer">
+                    이용안내
+                  </a>
+                  와{' '}
+                  <a href="#/privacy" target="_blank" rel="noreferrer">
+                    개인정보 처리안내
+                  </a>
+                  를 확인해 주세요. 가입 후 복구 코드를 꼭 저장하세요.
+                </p>
+              )}
               <div className="switch-mode">
                 {signup ? '이미 계정이 있나요?' : '아직 계정이 없나요?'}{' '}
                 <a href={signup ? '#/login' : '#/signup'}>
@@ -220,6 +247,74 @@ export default function Auth({ mode, onUser }) {
           )}
         </section>
       </div>
+    </main>
+  );
+}
+export function Recover({ onUser }) {
+  const action = useAction();
+  const [code, setCode] = useState('');
+  return (
+    <main className="content narrow">
+      <header className="page-heading">
+        <small className="eyebrow">ACCOUNT RECOVERY</small>
+        <h1>비밀번호 재설정</h1>
+        <p>가입할 때 저장한 복구 코드와 이메일을 입력하세요.</p>
+      </header>
+      {code ? (
+        <section className="panel stack">
+          <p className="notice" role="status">
+            비밀번호를 변경하고 기존 로그인을 모두 종료했습니다.
+          </p>
+          <RecoveryCode code={code} />
+          <a className="btn primary" href="#/login">
+            새 비밀번호로 로그인
+          </a>
+        </section>
+      ) : (
+        <form
+          className="panel stack"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const body = Object.fromEntries(new FormData(e.currentTarget));
+            action.run(async () => {
+              const hint = passwordHint(body.newPassword);
+              if (hint) throw new Error(hint);
+              if (body.newPassword !== body.confirm)
+                throw new Error('비밀번호 확인이 일치하지 않습니다.');
+              const result = await api('auth/reset-password', 'POST', body);
+              onUser(null);
+              setCode(result.recoveryCode);
+            });
+          }}
+        >
+          <label>
+            이메일
+            <input name="email" type="email" autoComplete="email" required maxLength="255" />
+          </label>
+          <label>
+            복구 코드
+            <input
+              name="recoveryCode"
+              autoComplete="off"
+              spellCheck={false}
+              required
+              maxLength="60"
+              placeholder="가입 후 저장한 코드"
+            />
+          </label>
+          <PasswordField name="newPassword" label="새 비밀번호" />
+          <PasswordField name="confirm" label="새 비밀번호 확인" />
+          <Alert message={action.error} />
+          <button className="primary" disabled={action.busy}>
+            비밀번호 재설정
+          </button>
+          <p className="muted">
+            복구 코드가 없으면 로그인된 기기의 마이페이지에서 재발급할 수 있습니다. 로그인과 복구
+            코드가 모두 없으면 비밀번호를 재설정할 수 없습니다.
+          </p>
+          <a href="#/login">로그인으로 돌아가기</a>
+        </form>
+      )}
     </main>
   );
 }

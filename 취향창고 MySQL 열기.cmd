@@ -1,2 +1,4 @@
 @echo off
-start "" "%~dp0.local\ChoriMySQL.exe"
+cd /d "%~dp0"
+call npm.cmd run db:start
+pause

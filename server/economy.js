@@ -19,12 +19,14 @@ function replay(row, inputs) {
   return true;
 }
 async function addStock(db, userId, itemId, quantity) {
+  // 회원과 원본의 복합 PK가 이미 있으면 수량만 더한다. ?는 회원 번호, 원본 번호, 증가 수량이다.
   await db.execute(
     'INSERT INTO inventories (user_id,item_id,quantity) VALUES (?,?,?) ON DUPLICATE KEY UPDATE quantity=quantity+?',
     [userId, itemId, quantity, quantity],
   );
 }
 function write(action) {
+  // 모든 재고 변경은 로그인 검사와 같은 잠금 순서를 거친다. 실패는 transaction이 전체 취소한다.
   return async (req, res) => {
     const result = await transaction(async (db) => {
       const user = await requireUser(db, req);
@@ -65,6 +67,7 @@ economy.post(
 economy.get('/production', async (req, res) => {
   const user = await requireUser(pool, req);
   const [rows] = await pool.execute(
+    // 생산 이력의 item_id를 원본에 연결한다. ?에는 로그인한 본인 번호만 전달한다.
     'SELECT p.*, i.name FROM production_logs p JOIN items i ON i.item_id=p.item_id WHERE producer_id=? ORDER BY production_id DESC',
     [user.user_id],
   );
@@ -73,6 +76,7 @@ economy.get('/production', async (req, res) => {
 economy.get('/inventory', async (req, res) => {
   const user = await requireUser(pool, req);
   const [rows] = await pool.execute(
+    // 보유자와 최초 제작자는 다르다. 재고 → 원본 → 최초 제작자 순서로 연결해 공개 닉네임을 얻는다.
     'SELECT v.*, (quantity-reserved_quantity) AS available, i.name,i.category,i.image_url,i.status,u.nickname FROM inventories v JOIN items i ON i.item_id=v.item_id JOIN users u ON u.user_id=i.creator_id WHERE v.user_id=? AND v.quantity>0 ORDER BY v.updated_at DESC',
     [user.user_id],
   );
@@ -98,6 +102,7 @@ economy.patch(
 const listingSelect =
   'SELECT l.*, i.name,i.image_url,i.status AS item_status,i.category, c.nickname AS creator, s.nickname AS seller FROM listings l JOIN items i ON i.item_id=l.item_id JOIN users c ON c.user_id=i.creator_id JOIN users s ON s.user_id=l.seller_id';
 economy.get('/market', async (req, res) => {
+  // 정렬 SQL에는 사용자의 문자열을 붙이지 않고 허용된 두 고정 표현 중 하나만 쓴다.
   const order = req.query.sort === 'price' ? 'l.unit_price,l.listing_id DESC' : 'l.listing_id DESC';
   const [rows] = await pool.query(listingSelect + ' WHERE l.status="ACTIVE" ORDER BY ' + order);
   res.json(rows);
@@ -121,7 +126,13 @@ economy.post(
       user.user_id,
       key,
     ]);
-    if (replay(past[0], { item_id: itemId, initial_quantity: quantity, unit_price: price }))
+    if (
+      replay(past[0], {
+        item_id: itemId,
+        initial_quantity: quantity,
+        unit_price: price,
+      })
+    )
       return { listing_id: past[0].listing_id };
     // 판매 예약은 보유량에 포함된다. 이미 예약된 수량을 빼고도 충분할 때만 예약을 늘린다.
     const [reserved] = await db.execute(
@@ -224,6 +235,7 @@ economy.post(
 economy.get('/trades', async (req, res) => {
   const user = await requireUser(pool, req);
   const [rows] = await pool.execute(
+    // 구매자·판매자 번호 중 하나라도 본인인 거래만 반환한다. 두 ? 모두 서버가 확인한 본인 번호다.
     'SELECT t.*,b.nickname AS buyer,s.nickname AS seller FROM trades t JOIN users b ON b.user_id=t.buyer_id JOIN users s ON s.user_id=t.seller_id WHERE t.buyer_id=? OR t.seller_id=? ORDER BY t.trade_id DESC',
     [user.user_id, user.user_id],
   );

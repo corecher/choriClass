@@ -1,6 +1,24 @@
-# 취향창고 · choriClass
+# choriClass
 
-React, Node.js, MySQL로 만든 디지털 아이템 수집 서비스입니다. 첫 화면은 회원가입입니다. 이메일, 닉네임, 비밀번호를 입력하면 개인 창고가 열리고 1,000G가 지급됩니다.
+choriClass는 React, Node.js, MySQL로 만든 아이템 수집 게임입니다. 첫 화면은 회원가입입니다. 이메일, 닉네임, 비밀번호를 입력하면 개인 창고가 열리고 1,000G가 지급됩니다.
+
+학번은 **20510**, 평가용 DB는 **`chori_class_20510`**, 테스트 DB는 **`chori_class_test_20510`**입니다. 두 이름 모두 `_20510`으로 끝납니다.
+
+## 학교 실습실에서 처음 실행하기
+
+Node.js 22.12 이상과 MySQL 8.4를 준비합니다. GitHub에서 소스코드를 내려받고 MySQL을 먼저 시작한 뒤 프로젝트 폴더에서 실행하세요.
+
+```powershell
+npm.cmd ci
+npm.cmd run setup
+npm.cmd run dev
+```
+
+`setup`에 학번 `20510`, MySQL 주소·포트, 관리자 아이디·비밀번호를 입력합니다. DB와 앱 계정을 만들고 연결 설정을 `.env`에 저장합니다. 관리자 비밀번호는 저장하지 않으며 기존 회원·아이템은 삭제하지 않습니다. 기존 앱 계정이 있으면 `.env`의 `DB_PASSWORD`가 해당 계정 비밀번호와 일치해야 합니다.
+
+[취향창고 열기](http://127.0.0.1:3000/#/signup)에서 회원가입하고 **복구 코드를 파일로 저장**하세요. `npm run dev` 하나로 클라이언트와 API 서버가 함께 실행됩니다. 다음 실행부터는 MySQL과 `npm run dev`만 켜면 됩니다. `취향창고 시작.cmd`를 더블클릭해도 됩니다.
+
+평가 당일에는 이 상태로 선생님의 CRUD 테스트를 받습니다. 최신 제출 마감은 **11월 16일 아침까지 GitHub에 소스코드 push하고, Git 저장소 URL을 수업 과제의 비공개 댓글로 제출**하는 것입니다. 정확한 아침 시각은 안내되지 않았습니다. 지각 시 하루당 4점 감점이며 SQL 클래스룸 과제 9개는 별도 평가 항목입니다.
 
 ## 이 컴퓨터에서 실행하기
 
@@ -20,15 +38,18 @@ npm.cmd run dev
 
 ## 다른 컴퓨터에서 설정하기
 
+위 `npm run setup`이 권장 방법입니다. DB와 앱 계정을 직접 준비할 경우 다음 절차를 사용합니다.
+
 1. Node.js 22.12 이상과 MySQL 8.4를 준비하고 MySQL을 시작합니다.
 2. MySQL 관리자 계정으로 아래 SQL을 실행합니다. 예시 비밀번호는 자신의 로컬 비밀번호로 바꾸세요.
 3. `.env.example`을 `.env`로 복사하고 포트와 비밀번호를 입력합니다.
 4. `npm ci`와 `npm run dev`를 순서대로 실행합니다. 첫 시작 때 필요한 테이블을 생성합니다. 빌드된 화면을 사용하려면 `npm run build` 후 `npm start`를 실행합니다.
 
 ```sql
-CREATE DATABASE chori_class CHARACTER SET utf8mb4;
-CREATE USER 'chori'@'localhost' IDENTIFIED BY 'replace-with-your-local-password';
-GRANT ALL PRIVILEGES ON chori_class.* TO 'chori'@'localhost';
+CREATE DATABASE IF NOT EXISTS chori_class_20510 CHARACTER SET utf8mb4;
+CREATE USER 'chori_20510'@'localhost' IDENTIFIED BY 'replace-with-your-local-password';
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
+  ON chori_class_20510.* TO 'chori_20510'@'localhost';
 ```
 
 ## 회원가입 코드 따라가기
@@ -53,8 +74,63 @@ GRANT ALL PRIVILEGES ON chori_class.* TO 'chori'@'localhost';
 테스트는 별도 MySQL 데이터베이스에 임의의 테스트 계정을 생성합니다. 이 컴퓨터에는 테스트 DB가 준비되어 있습니다. 다른 컴퓨터에서는 아래 SQL로 준비한 뒤 `npm test`를 실행하세요.
 
 ```sql
-CREATE DATABASE chori_class_test CHARACTER SET utf8mb4;
-GRANT ALL PRIVILEGES ON chori_class_test.* TO 'chori'@'localhost';
+CREATE DATABASE IF NOT EXISTS chori_class_test_20510 CHARACTER SET utf8mb4;
+GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, INDEX, REFERENCES
+  ON chori_class_test_20510.* TO 'chori_20510'@'localhost';
 ```
 
 검증 항목은 동시 가입과 비밀번호 해시, 초기 골드, 로그인·로그아웃·탈퇴, 작성자 권한, 제작자 JOIN, 중복 생산과 구매, 마지막 매물 동시 구매, 골드 부족 시 재고 유지, 탈퇴한 제작자의 아이템 재판매입니다. 골드와 수량을 함께 변경하는 순서는 `server/economy.js`에서 확인할 수 있습니다.
+
+추가로 복구 코드의 해시·일회성·재발급, 기존 세션 종료, 정보 내보내기, 두 JOIN 결과와 원본 없는 회원 집계, 구매와 판매 취소의 동시 요청, 보안 헤더·교차 사이트 변경 차단·잘못된 JSON·비공개 파일 보호를 검사합니다. 테스트는 별도 DB에서만 실행됩니다.
+
+개발 실행 검증은 24678 포트가 이미 사용 중인 상황에서 두 개발 서버의 HTTP·WebSocket 연결을 확인합니다. 같은 게임의 중복 실행은 기존 주소를 안내하고 정상 종료하며, 다른 프로그램과의 포트 충돌은 오류 안내 후 개발용 연결까지 정리하고 종료하는지 확인합니다.
+
+## 수행평가 항목과 소스 위치
+
+| 항목 | 시연 화면 | 주요 소스 |
+| --- | --- | --- |
+| 회원 Create · 4점 | 회원가입 | `server/auth.js`, `client/src/Auth.jsx` |
+| 회원 Read · 4점 | 로그인 → 마이페이지 | `server/auth.js`, `client/src/Profile.jsx` |
+| 회원 Update · 4점 | 마이페이지 → 프로필·비밀번호 수정 | 같은 파일 |
+| 회원 Delete · 4점 | 비밀번호·탈퇴 의사 확인 → 회원 탈퇴 | 같은 파일 |
+| 핵심 Create · 4점 | 내 제작소 → 원본 등록 | `server/items.js`, `client/src/Library.jsx` |
+| 핵심 Read · 4점 | 전체 도감 → 원본 상세 | 같은 파일 |
+| 핵심 Update · 4점 | 본인 원본 상세 → 수정 | 같은 파일 |
+| 핵심 Delete · 4점 | 본인 원본 상세 → 제작 종료 | 같은 파일 |
+| JOIN 결과 1 · 4점 | 상단 제작자별 도감 → 제작자 필터 | `server/items.js` |
+| JOIN 결과 2 · 4점 | 상단 제작자 통계 → 원본 수·생산량 | `server/reports.js`, `client/src/Info.jsx` |
+
+두 결과 모두 **users와 items 두 테이블**을 연결합니다. 두 SQL은 `database/evaluation-joins.sql`에 있습니다. 기능 40점 + 기본 20점 = 프로젝트 60점입니다.
+
+## 추가 기본 기능
+
+회원가입·로그인·로그아웃·프로필 수정·탈퇴 외에 현재 비밀번호 확인 후 비밀번호 변경, 복구 코드로 비밀번호 재설정, 코드 재발급·파일 저장, 본인 정보 내려받기를 제공합니다. 로그인은 기본 7일간 유지되며 만료 시 재로그인을 안내합니다.
+
+복구 코드 원문은 발급할 때만 표시하고 DB에는 해시를 저장합니다. 복구 성공 시 코드가 교체되고 기존 로그인은 모두 종료됩니다. **로그인된 기기도 없고 복구 코드도 없으면 재설정할 수 없습니다.** 로컬 실습에 맞춰 이메일 발송이나 실결제 없이 사용할 수 있습니다.
+
+도감·인벤토리·시장의 검색과 페이지 이동, 분류·상태 필터, 최신·가격 정렬, 빈 목록·오류·로딩·재시도·없는 페이지 안내를 제공합니다. 반응형 화면, 키보드 포커스·본문 바로가기, 이용 가이드·이용안내·개인정보 안내도 포함됩니다.
+
+서버는 bcrypt, HttpOnly 쿠키, 서버 권한 검사, SQL 파라미터, 반복 인증 시도 제한, 교차 사이트 변경 차단과 기본 보안 헤더를 사용합니다. 서버는 실습용으로 `127.0.0.1`에만 연결됩니다. HTTP에서는 `.env`의 `COOKIE_SECURE=false`를 사용합니다.
+
+원본과 회원 삭제는 **논리 삭제**입니다. 탈퇴 시 이메일·비밀번호 해시·복구 해시·소개를 비우고 닉네임을 `탈퇴 회원`으로 바꿉니다. 다른 회원의 보유분·매물·거래 이력은 유지합니다. 원본 이름은 삭제 후에도 재사용할 수 없습니다.
+
+## 선택 시연 데이터와 실행 점검
+
+```powershell
+npm.cmd run check
+npm.cmd run db:seed
+```
+
+`check`는 DB명·연결·필수 테이블과 빌드 여부를 확인합니다. `db:seed`는 원할 때만 시연 데이터를 추가합니다. 제작자 `maker@chori.example`, 수집가 `collector@chori.example`의 연습용 비밀번호는 `Demo20510!`입니다. 원본 4종을 각 10개 생산하고 4개씩 100G에 판매합니다. 반복 실행해도 같은 생산이 중복되지 않고 기존 계정의 비밀번호나 삭제한 원본을 강제로 복원하지 않습니다.
+
+코드 설명과 수행평가 질문별로 열 파일은 `docs/CODE_GUIDE.md`, API 목록은 `docs/API.md`에 있습니다. GitHub 제출에는 `.env.example`, `package-lock.json`, `database`, `scripts`, `client`, `server`, `test`와 안내 문서를 포함하고 `.env`, `.local`, `node_modules`, `dist`는 제외합니다.
+
+## 실행 문제 해결
+
+- `ECONNREFUSED`: MySQL을 시작하고 `.env`의 주소·포트를 확인하세요.
+- `ER_ACCESS_DENIED_ERROR`: 앱 계정·비밀번호를 확인하세요. 관리자 비밀번호와 구분합니다.
+- DB 또는 테이블 없음: `npm run setup`을 실행하세요.
+- 이미 실행 중이라는 안내: 표시된 주소를 브라우저에서 열면 됩니다. 게임을 다시 켜려면 원래 실행 창에서 Ctrl+C로 종료한 뒤 실행하세요. 다른 프로그램이 포트를 사용 중이면 `.env`의 `PORT`를 바꾸세요. 개발용 WebSocket은 웹사이트와 같은 포트를 사용하므로 별도 24678 포트가 필요하지 않습니다.
+- 로그인 유지 안 됨: HTTP에서 `COOKIE_SECURE=false`로 설정하고 `127.0.0.1` 주소를 일관되게 사용하세요.
+- `429`: 인증 요청 횟수가 많습니다. 안내된 대기 시간 후 다시 시도하세요.
+- 이전 화면 표시: 개발은 `npm run dev`, 배포 실행은 `npm run build` 후 `npm start`를 사용하세요.

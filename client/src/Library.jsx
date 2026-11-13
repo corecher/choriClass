@@ -7,6 +7,7 @@ import {
   Empty,
   Head,
   Load,
+  Paged,
   api,
   go,
   money,
@@ -31,13 +32,14 @@ function Tile({ item }) {
     </a>
   );
 }
-export function Library({ page, user, revision }) {
+export function Library({ page, creatorId, user, revision }) {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('');
-  const [creator, setCreator] = useState('');
+  const [creator, setCreator] = useState(creatorId || '');
   const studio = page === 'studio',
     creators = page === 'creators';
   const all = useData('items', revision);
+  const people = useData(creators ? 'reports/creator-stats' : null, revision);
   const filtered = useData(
     creators && creator ? 'items?creator=' + encodeURIComponent(creator) : null,
     revision,
@@ -55,6 +57,11 @@ export function Library({ page, user, revision }) {
             ? '제작자의 공개 소개와 직접 만든 원본을 함께 살펴보세요.'
             : '수집가들이 만든 아이템 원본을 찾아보세요.'}
       </Head>
+      {creators && (
+        <a className="btn" href="#/stats">
+          제작자별 원본 수와 생산량 통계 보기 →
+        </a>
+      )}
       <div className="toolbar">
         <label className="search">
           <Search size={17} />
@@ -74,9 +81,9 @@ export function Library({ page, user, revision }) {
         {creators && (
           <select aria-label="제작자" value={creator} onChange={(e) => setCreator(e.target.value)}>
             <option value="">모든 제작자</option>
-            {[...new Map((all.data || []).map((i) => [i.creator_id, i])).values()].map((i) => (
-              <option key={i.creator_id} value={i.creator_id}>
-                {i.nickname} (#{i.creator_id})
+            {(people.data || []).map((i) => (
+              <option key={i.user_id} value={i.user_id}>
+                {i.nickname} (#{i.user_id})
               </option>
             ))}
           </select>
@@ -106,25 +113,40 @@ export function Library({ page, user, revision }) {
               </Empty>
             );
           if (creators) {
-            const groups = Map.groupBy(list, (i) => i.creator_id);
-            return Array.from(groups, ([key, group]) => (
-              <section key={key} className="creator-group">
-                <h2>{group[0].nickname}</h2>
-                <p>{group[0].bio || '아직 공개 소개가 없습니다.'}</p>
+            return (
+              <Paged rows={list}>
+                {(visible) => {
+                  // 제작자 번호가 같은 아이템끼리 묶는다. 화면의 그룹에도 서버 JOIN의 최신 프로필을 쓴다.
+                  const groups = new Map();
+                  for (const item of visible) {
+                    if (!groups.has(item.creator_id)) groups.set(item.creator_id, []);
+                    groups.get(item.creator_id).push(item);
+                  }
+                  return Array.from(groups, ([key, group]) => (
+                    <section key={key} className="creator-group">
+                      <h2>{group[0].nickname}</h2>
+                      <p>{group[0].bio || '아직 공개 소개가 없습니다.'}</p>
+                      <div className="tiles">
+                        {group.map((i) => (
+                          <Tile key={i.item_id} item={i} />
+                        ))}
+                      </div>
+                    </section>
+                  ));
+                }}
+              </Paged>
+            );
+          }
+          return (
+            <Paged rows={list}>
+              {(visible) => (
                 <div className="tiles">
-                  {group.map((i) => (
+                  {visible.map((i) => (
                     <Tile key={i.item_id} item={i} />
                   ))}
                 </div>
-              </section>
-            ));
-          }
-          return (
-            <div className="tiles">
-              {list.map((i) => (
-                <Tile key={i.item_id} item={i} />
-              ))}
-            </div>
+              )}
+            </Paged>
           );
         }}
       </Load>
